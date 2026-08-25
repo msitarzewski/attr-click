@@ -13,7 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '127.0.0.1');
+        // Behind the TLS-terminating reverse proxy, Laravel sees the real client IP
+        // (not 127.0.0.1). FPM listens only on the local unix socket, so '*' is safe
+        // and gives correct https URLs + the real client IP for throttling/logging.
+        $middleware->trustProxies(at: '*');
         $middleware->append(SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
